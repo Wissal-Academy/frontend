@@ -6,6 +6,7 @@ function App() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [token, setToken] = useState('');
+  const [query, setQuery] = useState('');
   const [loggedIn, setLoggedIn] = useState(false);
   const [items, setItems] = useState([]);
 
@@ -35,7 +36,6 @@ function App() {
           password
         });
         setToken(response.data.access_token)
-        console.log(response.data.access_token, "<<<<<<<<<<<<")
         setLoggedIn(true)
     }catch {
       console.log("Login Error")
@@ -43,17 +43,25 @@ function App() {
   }
 
 
-  const fetchItems = async () => {
+  const fetchItems = async (query_params = '') => {
     try {
       const response = await axios.get('http://127.0.0.1:8000/api/items/', {
         headers: {
           Authorization: `Bearer ${token}`,
         },
+        params: {
+          search: query_params
+        }
       });
       setItems(response.data);
     } catch (error) {
       console.log('Failed to fetch items', error.response ? error.response.data : error.message);
     }
+  }
+
+  const handleSearch= (e) =>{
+    e.preventDefault();
+    fetchItems(query)
   }
 
   return (
@@ -108,8 +116,17 @@ function App() {
         </>
       ):(
         <>
-        <button onClick={fetchItems}>Fetch Items</button>
           <h3>List of Items</h3>
+          <form onSubmit={handleSearch}>
+            <input 
+              type='text'
+              placeholder='Search item ...'
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+            />
+            <button type='submit'>Search</button>
+          </form>
+          <button onClick={() => fetchItems()}>Fetch Items</button>
           <ul>
             {items.map((item) => (
               <li key={item.id}>
